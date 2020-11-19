@@ -1,0 +1,35 @@
+{
+  "name": "sdfg",
+  "version": "0.0.1",
+  "description": "Random-ast CLI bs'es",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "lib/",
+    "functions/",
+    "definitions/"
+  ],
+  "bin": {
+    "sdfg": "cli.js"
+  },
+  "scripts": {
+    "test": "mvt --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doesdev/sdfg.git"
+  },
+  "keywords": [
+    "cli"
+  ],
+  "author": "Andrew Carpenter",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/doesdev/sdfg/issues"
+  },
+  "homepage": "https://github.com/doesdev/sdfg#readme",
+  "dependencies": {
+    "execa": "^4.1.0",
+    "prompts": "^2.4.0"
+  }
+}
