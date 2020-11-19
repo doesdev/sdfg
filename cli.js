@@ -11,4 +11,12 @@ const cmd = async () => {
 
 const command = commands[rawArgs[0]] || { cmd }
 
-command.cmd().catch(console.error)
+const main = async () => {
+  if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    return console.log(command.info.help)
+  }
+
+  command.cmd()
+}
+
+main().catch(console.error)
