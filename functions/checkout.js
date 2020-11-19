@@ -17,9 +17,13 @@ const onCancel = (current) => () => {
 
 const cmd = async (limit = 5) => {
   const current = await currentBranch()
-  const rawBranches = await execa('git', branchCmd)
-  const allBranches = rawBranches.stdout.split('\n').map((b) => b.trim())
+  const rawBranches = (await execa('git', branchCmd)).stdout.trim().split('\n')
+  const allBranches = rawBranches.filter((b) => b).map((b) => b.trim())
   const branches = allBranches.slice(0, limit)
+
+  if (!branches.length) {
+    return console.log(`${current} is the only active branch`)
+  }
 
   if (current !== 'master' && !branches.includes('master')) {
     branches.unshift('master')
