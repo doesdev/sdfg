@@ -15,6 +15,14 @@ const args = [
     description: 'How many branches should present (max)?'
   },
   {
+    name: 'no-merged',
+    flag: 'n',
+    type: 'boolean',
+    default: false,
+    description: 'Pass the --no-merged flag to the branch command?',
+    pending: true
+  },
+  {
     name: 'include-remote',
     flag: 'i',
     type: 'boolean',

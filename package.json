@@ -1,6 +1,6 @@
 {
   "name": "sdfg",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Random-ast CLI bs'es",
   "main": "index.js",
   "files": [

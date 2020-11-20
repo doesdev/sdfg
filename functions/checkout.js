@@ -3,10 +3,16 @@
 const info = require('./../definitions/checkout')
 const execa = require('execa')
 const prompts = require('prompts')
-const branchCmd = ['branch', '--sort=-committerdate', '--no-merged']
+const execOpts = { reject: false }
+
+const exitWithErr = (err) => {
+  console.error(err)
+  process.exit(0)
+}
 
 const currentBranch = async () => {
-  const raw = await execa('git', ['branch', '--show-current'])
+  const raw = await execa('git', ['branch', '--show-current'], execOpts)
+  if (raw.stderr) return exitWithErr(raw.stderr)
   return raw.stdout.trim()
 }
 
@@ -15,11 +21,22 @@ const onCancel = (current) => () => {
   process.exit()
 }
 
-const cmd = async (limit = 5) => {
+const cmd = async (opts = {}) => {
+  const { limit = 5, noMerged = false } = opts
   const current = await currentBranch()
-  const rawBranches = (await execa('git', branchCmd)).stdout.trim().split('\n')
-  const allBranches = rawBranches.filter((b) => b).map((b) => b.trim())
-  const branches = allBranches.slice(0, limit)
+  const branchCmd = ['branch', '--sort=-committerdate']
+
+  if (noMerged) branchCmd.push('--no-merged')
+
+  const { stdout, stderr } = await execa('git', branchCmd, execOpts)
+
+  if (stderr) return exitWithErr(stderr)
+
+  const filterCurrent = (b) => b !== current && b !== `* ${current}`
+
+  const rawBranches = stdout.trim().split('\n')
+  const allBranches = rawBranches.map((b) => b.trim()).filter((b) => b)
+  const branches = allBranches.filter(filterCurrent).slice(0, limit)
 
   if (!branches.length) {
     return console.log(`${current} is the only active branch`)
@@ -27,7 +44,7 @@ const cmd = async (limit = 5) => {
 
   if (current !== 'master' && !branches.includes('master')) {
     branches.unshift('master')
-    branches.pop()
+    if (branches.length > limit) branches.pop()
   }
 
   const response = await prompts({
@@ -41,10 +58,11 @@ const cmd = async (limit = 5) => {
 
   if (branch === current) return onCancel()
 
-  const checkoutCmd = execa('git', ['checkout', branch])
-  checkoutCmd.stdout.pipe(process.stdout)
-  checkoutCmd.stderr.pipe(process.stderr)
-  await checkoutCmd
+  const checkout = await execa('git', ['checkout', branch], execOpts)
+
+  if (checkout.stderr) return exitWithErr(checkout.stderr)
+
+  console.log(checkout.stdout)
 
   const update = await prompts({
     type: 'confirm',
@@ -55,9 +73,11 @@ const cmd = async (limit = 5) => {
 
   if (update.value !== true) return
 
-  const pull = execa('git', ['pull', 'origin', branch])
-  pull.stdout.pipe(process.stdout)
-  pull.stderr.pipe(process.stderr)
+  const pull = await execa('git', ['pull', 'origin', branch], execOpts)
+
+  if (pull.stderr) return exitWithErr(pull.stderr)
+
+  console.log(pull.stdout)
 }
 
 module.exports = { cmd, info }
